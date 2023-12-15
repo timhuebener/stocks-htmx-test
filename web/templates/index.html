@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" class="sl-theme-dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Website</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.12.0/cdn/themes/dark.css" />
+</head>
+
+<body>
+    <h1>Welcome to My Website</h1>
+
+    <sl-button hx-get="/api/data" hx-swap="outerHTML">Load Data</sl-button>
+
+    <div id="data-container">
+        <!-- Data will be loaded here -->
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@latest"></script>
+    <script type="module"
+        src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.12.0/cdn/shoelace-autoloader.js"></script>
+
+</body>
+
+</html>
