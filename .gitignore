@@ -22,3 +22,11 @@
 
 # Go workspace file
 go.work
+
+# Terraform files
+.terraform/
+*.tfstate
+*.tfstate.*.backup
+*.tfstate.backup
+*.tfvars
+*hcl
