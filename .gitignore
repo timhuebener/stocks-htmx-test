@@ -30,3 +30,4 @@ go.work
 *.tfstate.backup
 *.tfvars
 *hcl
+log.txt
