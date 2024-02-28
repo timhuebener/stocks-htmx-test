@@ -1,27 +1,33 @@
 package main
 
 import (
-	"html/template"
-	"net/http"
+	"htmx/pkg/app"
+	"htmx/pkg/otel"
+	"htmx/pkg/otel/log"
+	"htmx/pkg/stocks"
 )
 
-func root(w http.ResponseWriter, r *http.Request) {
-	print("Request received\n")
-	tmpl, err := template.ParseFiles("../../web/templates/index.html")
-	if err != nil {
-		print("Error parsing template\n")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if err := tmpl.Execute(w, nil); err != nil {
-		print("Error executing template\n")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
 func main() {
-	http.HandleFunc("/", root)
-	print("Starting server on port 8080\n")
-	http.ListenAndServe(":8080", nil)
+	config := app.Config{
+		Name:    "stocks-htmx",
+		Version: "0.0.1",
+	}
+
+	stocks := stocks.NewApp(config)
+
+	var shutdownFuncs []app.ShutdownFunc
+
+	shutdown, err := stocks.Setup()
+	if err != nil {
+		log.Error(stocks.Ctx, "setup error", otel.ErrorMsg.String(err.Error()))
+	}
+	shutdownFuncs = append(shutdownFuncs, shutdown)
+
+	shutdown, err = stocks.Run()
+	if err != nil {
+		log.Error(stocks.Ctx, "run error", otel.ErrorMsg.String(err.Error()))
+	}
+	shutdownFuncs = append(shutdownFuncs, shutdown)
+
+	stocks.Cleanup(shutdownFuncs)
 }
