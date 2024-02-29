@@ -1,7 +1,7 @@
 package stocks
 
 import (
-	"htmx/pkg/handler"
+	"htmx/pkg/stocks/internal/handler"
 	"net/http"
 )
 
