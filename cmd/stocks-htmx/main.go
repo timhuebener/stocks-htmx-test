@@ -1,16 +1,25 @@
 package main
 
 import (
+	"fmt"
 	"htmx/pkg/app"
 	"htmx/pkg/otel"
 	"htmx/pkg/otel/log"
 	"htmx/pkg/stocks"
+	"os"
 )
 
 func main() {
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error getting current directory:", err)
+		return
+	}
+
 	config := app.Config{
-		Name:    "stocks-htmx",
-		Version: "0.0.1",
+		Name:     "stocks-htmx",
+		Version:  "0.0.1",
+		BasePath: cwd + "/web/templates",
 	}
 
 	stocks := stocks.NewApp(config)

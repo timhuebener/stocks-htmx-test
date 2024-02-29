@@ -4,28 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Website</title>
+    <title>{{.Title}}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.12.0/cdn/themes/dark.css" />
 </head>
 
 <body>
     <h1>Welcome to My Website</h1>
 
-    <div id="data-container">
-        <!-- Data will be loaded here -->
-        {{ range .Accounts }}
-        <div class="account">
-            {{ if eq .Lvl 0 }}
-            <h2>{{ .Name }}</h2>
-            {{ end }}
-        </div>
-        {{ end }}
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@latest"></script>
-    <script type="module"
-        src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.12.0/cdn/shoelace-autoloader.js"></script>
-
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.12.0/cdn/shoelace-autoloader.js"></script>
 </body>
 
 </html>

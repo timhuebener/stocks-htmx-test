@@ -3,19 +3,16 @@ package stocks
 import (
 	"context"
 	"fmt"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 	"htmx/pkg/app"
 	loglib "htmx/pkg/log"
 	"htmx/pkg/otel"
 	ot "htmx/pkg/otel"
 	"htmx/pkg/otel/log"
-	"net"
-	"net/http"
+	"htmx/pkg/server"
 	"os"
 	"os/signal"
-	"time"
-
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 type Stocks struct {
@@ -25,7 +22,7 @@ type Stocks struct {
 	shutdownFuncs []func(context.Context) error
 }
 
-var _ app.Lifecycle = (*Stocks)(nil)
+var _ app.Lifecycle = &Stocks{}
 
 func NewApp(config app.Config) *Stocks {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
@@ -48,29 +45,18 @@ func (app *Stocks) Setup() (app.ShutdownFunc, error) {
 		return nil, err
 	}
 
-	// db, err := connectToPostgreSQL()
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-
-	// // Perform database migration
-	// err = db.AutoMigrate(&Product{})
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
 	return otelShutdown, nil
 }
 
 func (app *Stocks) Run() (app.ShutdownFunc, error) {
 	// Setup HTTP server.
 	log.Debug(app.Ctx, "Starting HTTP server")
-	srv := &http.Server{
-		Addr:         ":8080",
-		BaseContext:  func(_ net.Listener) context.Context { return app.Ctx },
-		ReadTimeout:  time.Second,
-		WriteTimeout: 10 * time.Second,
-		Handler:      newHTTPHandler(),
+	srv, err := server.NewServer(server.Config{
+		Addr:   ":420",
+		Routes: app.routes(),
+	})
+	if err != nil {
+		log.Fatal(app.Ctx, "unable to create server", otel.ErrorMsg.String(err.Error()))
 	}
 
 	// Start HTTP server.

@@ -32,7 +32,7 @@ func NewPropagator() propagation.TextMapPropagator {
 }
 
 func NewTraceProvider(ctx context.Context, res *resource.Resource) (*trace.TracerProvider, error) {
-	traceExporter, err := newHttpTraceExporter(ctx)
+	traceExporter, err := newGrpcTraceExporter(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func newGrpcTraceExporter(ctx context.Context) (trace.SpanExporter, error) {
 }
 
 func newHttpTraceExporter(ctx context.Context) (trace.SpanExporter, error) {
-	urlPath := "https://localhost:8200"
+	urlPath := "localhost:4318"
 	otlptracehttp.WithHeaders(map[string]string{"Authorization": "Bearer supersecrettoken"})
 	return otlptracehttp.New(ctx, otlptracehttp.WithInsecure(), otlptracehttp.WithEndpoint(urlPath))
 }

@@ -8,8 +8,9 @@ type Lifecycle interface {
 }
 
 type Config struct {
-	Name    string
-	Version string
+	Name     string
+	Version  string
+	BasePath string
 }
 
 type ShutdownFunc func(context.Context) error
