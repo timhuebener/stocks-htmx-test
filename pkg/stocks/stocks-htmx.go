@@ -3,14 +3,13 @@ package stocks
 import (
 	"context"
 	"fmt"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"htmx/pkg/app"
 	loglib "htmx/pkg/log"
 	"htmx/pkg/otel"
 	ot "htmx/pkg/otel"
 	"htmx/pkg/otel/log"
 	"htmx/pkg/server"
+	"htmx/pkg/stocks/internal/pgdb"
 	"os"
 	"os/signal"
 )
@@ -37,6 +36,16 @@ func (app *Stocks) Setup() (app.ShutdownFunc, error) {
 	log.SetLogger(loglib.NewStdLogger(app.config.Name, loglib.DEBUG, loglib.NewFileExporter()))
 
 	log.Debug(app.Ctx, "Setting up application")
+	conn := fmt.Sprintf("host=localhost user=%s dbname=%s sslmode=disable password=%s", app.config.DbUser, app.config.DbName, app.config.DbPassword)
+	if err := pgdb.Connect(conn); err != nil {
+		return nil, fmt.Errorf("Failed to connect to database:", err)
+	}
+
+	if err := pgdb.Migrate(); err != nil {
+		return nil, fmt.Errorf("Failed to migrate database:", err)
+	}
+
+	// pgdb.Seed()
 
 	// Set up OpenTelemetry.
 	log.Debug(app.Ctx, "Setting up OpenTelemetry")
@@ -52,7 +61,7 @@ func (app *Stocks) Run() (app.ShutdownFunc, error) {
 	// Setup HTTP server.
 	log.Debug(app.Ctx, "Starting HTTP server")
 	srv, err := server.NewServer(server.Config{
-		Addr:   ":420",
+		Addr:   "localhost:4200",
 		Routes: app.routes(),
 	})
 	if err != nil {
@@ -68,9 +77,8 @@ func (app *Stocks) Run() (app.ShutdownFunc, error) {
 
 	// Wait
 	select {
-	case <-srvErr:
-		// Error when starting HTTP server.
-		log.Error(app.Ctx, "Error starting HTTP server")
+	case err := <-srvErr:
+		log.Error(app.Ctx, "Error starting HTTP server", otel.ErrorMsg.String(err.Error()))
 	case <-app.Ctx.Done():
 		// Wait for first CTRL+C.
 		log.Fatal(app.Ctx, "Context Cancelled")
@@ -90,14 +98,4 @@ func (app *Stocks) Cleanup(shutdownFuncs []app.ShutdownFunc) {
 		log.Info(app.Ctx, "cleanup error", otel.ErrorMsg.String(fmt.Sprintf("%s", fn(app.Ctx))))
 	}
 	app.stop()
-}
-
-func connectToPostgreSQL() (*gorm.DB, error) {
-	dsn := "user=myuser password=mypassword dbname=mydatabase host=localhost port=5432 sslmode=disable"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
 }

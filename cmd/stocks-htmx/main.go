@@ -17,9 +17,12 @@ func main() {
 	}
 
 	config := app.Config{
-		Name:     "stocks-htmx",
-		Version:  "0.0.1",
-		BasePath: cwd + "/web/templates",
+		Name:       "stocks-htmx",
+		Version:    "0.0.1",
+		BasePath:   cwd + "/web/templates",
+		DbName:     "mydatabase",
+		DbUser:     "myuser",
+		DbPassword: "mypassword",
 	}
 
 	stocks := stocks.NewApp(config)
@@ -29,12 +32,14 @@ func main() {
 	shutdown, err := stocks.Setup()
 	if err != nil {
 		log.Error(stocks.Ctx, "setup error", otel.ErrorMsg.String(err.Error()))
+		return
 	}
 	shutdownFuncs = append(shutdownFuncs, shutdown)
 
 	shutdown, err = stocks.Run()
 	if err != nil {
 		log.Error(stocks.Ctx, "run error", otel.ErrorMsg.String(err.Error()))
+		return
 	}
 	shutdownFuncs = append(shutdownFuncs, shutdown)
 
