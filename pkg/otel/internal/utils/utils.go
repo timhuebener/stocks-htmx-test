@@ -63,6 +63,12 @@ func newHttpTraceExporter(ctx context.Context) (trace.SpanExporter, error) {
 	return otlptracehttp.New(ctx, otlptracehttp.WithInsecure(), otlptracehttp.WithEndpoint(urlPath))
 }
 
+func elasticTraceExporter(ctx context.Context) (trace.SpanExporter, error) {
+	urlPath := "localhost:8200"
+	otlptracehttp.WithHeaders(map[string]string{"Authorization": "Bearer supersecrettoken"})
+	return otlptracehttp.New(ctx, otlptracehttp.WithInsecure(), otlptracehttp.WithEndpoint(urlPath))
+}
+
 func NewMeterProvider(ctx context.Context, res *resource.Resource) (*metric.MeterProvider, error) {
 	metricExporter, err := newGrpcMetricExporter(ctx)
 	if err != nil {

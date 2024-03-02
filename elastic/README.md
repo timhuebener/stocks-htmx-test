@@ -13,6 +13,8 @@ ssl:
         ....
 ```
     
+User Name: `elastic`
+Password: `changeme`
 
 APM Agent Setup - <https://www.elastic.co/guide/en/apm/guide/current/open-telemetry-direct.html#instrument-apps-otel>
 
