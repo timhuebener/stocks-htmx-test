@@ -2,25 +2,32 @@ package log
 
 import (
 	"context"
-	"regexp"
+	"fmt"
+	"os"
+	"runtime"
+	"strings"
 	"time"
 )
 
 var _ Logger = &StdLogger{}
 
 type StdLogger struct {
-	rsc       string
-	lvl       Level
-	exp       Exporter
-	hashVins  bool
-	vinRegexp *regexp.Regexp
+	rsc string
+	lvl Level
+	exp Exporter
+	cwd string
 }
 
 func NewStdLogger(resource string, lvl Level, exporter Exporter) StdLogger {
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error getting current directory:", err)
+	}
 	return StdLogger{
 		rsc: resource,
 		lvl: lvl,
 		exp: exporter,
+		cwd: cwd,
 	}
 }
 
@@ -30,6 +37,12 @@ func (s StdLogger) Log(ctx context.Context, lvl Level, msg string, meta map[stri
 	}
 	if meta == nil {
 		meta = map[string]string{}
+	}
+
+	_, file, line, ok := runtime.Caller(3)
+	relative, ok := strings.CutPrefix(file, s.cwd)
+	if ok {
+		meta["file"] = fmt.Sprintf("%s:%d", relative, line)
 	}
 
 	meta["timestamp"] = time.Now().UTC().Format(time.RFC3339)
