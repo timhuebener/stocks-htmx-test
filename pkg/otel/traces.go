@@ -20,13 +20,8 @@ func NewTracer(name string) *Tracer {
 }
 
 // StartSpan starts a new span with the given name and options.
-func (t *Tracer) StartSpan(ctx context.Context, name string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
+func (t *Tracer) Start(ctx context.Context, name string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
 	return t.otelTracer.Start(ctx, name, opts...)
-}
-
-// WithSpan wraps the given context with the provided span.
-func (t *Tracer) WithSpan(ctx context.Context, span trace.Span) context.Context {
-	return trace.ContextWithSpan(ctx, span)
 }
 
 // SpanFromContext retrieves the span from the given context.

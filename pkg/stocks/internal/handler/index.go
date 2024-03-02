@@ -16,8 +16,12 @@ type IndexHandler struct {
 }
 
 func (h IndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	file := "index.html"
-	tmpl, err := template.New(file).ParseFiles(path.Join(h.BasePath, file))
+	ctx := r.Context()
+	content := "home.html"
+	layout := "index.html"
+
+	tmpl, err := template.ParseGlob(path.Join(h.BasePath, "components", "*.html"))
+	tmpl.ParseFiles(path.Join(h.BasePath, "layouts", layout), path.Join(h.BasePath, "pages", content))
 	if err != nil {
 		log.Error(context.TODO(), "unable to get html template", otel.ErrorMsg.String(err.Error()))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -25,7 +29,7 @@ func (h IndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := pgdb.GetAccounts()
+	res, err := pgdb.GetAccounts(ctx)
 	if err != nil {
 		log.Error(context.TODO(), "not able to get accounts", otel.ErrorMsg.String(err.Error()))
 		w.Write([]byte("Something went wrong"))
@@ -40,7 +44,7 @@ func (h IndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Accounts: res,
 	}
 
-	if err := tmpl.Execute(w, data); err != nil {
+	if err := tmpl.ExecuteTemplate(w, "index.html", data); err != nil {
 		log.Error(context.TODO(), "unable to execute template", otel.ErrorMsg.String(err.Error()))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
