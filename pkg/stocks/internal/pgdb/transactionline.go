@@ -1,7 +1,9 @@
 package pgdb
 
 import (
+	"context"
 	"gorm.io/gorm"
+	"htmx/pkg/otel/db/psql"
 )
 
 type TransactionLine struct {
@@ -13,21 +15,47 @@ type TransactionLine struct {
 }
 
 // CreateTransactionLine - Create a new transactionLine
-func CreateTransactionLine(transactionLine *TransactionLine) (*TransactionLine, error) {
-	err := DB.Create(&transactionLine).Error
-	return transactionLine, err
+func CreateTransactionLine(ctx context.Context, transactionLine TransactionLine) (*TransactionLine, error) {
+	return psql.Create[TransactionLine](ctx, transactionLine)
+}
+
+// GetTransactionLineByID - Get an transactionLine by ID
+func GetTransactionLineByID(ctx context.Context, id uint) (*TransactionLine, error) {
+	var transactionLine TransactionLine
+	return psql.GetByID[TransactionLine, uint](ctx, transactionLine, id)
 }
 
 // GetTransactionLines - Get all transactionLines
-func GetTransactionLines() ([]TransactionLine, error) {
+func GetTransactionLines(ctx context.Context) ([]TransactionLine, error) {
 	var transactionLines []TransactionLine
-	res := DB.Find(&transactionLines)
-	return transactionLines, res.Error
+	return psql.Get[TransactionLine](ctx, transactionLines)
 }
 
-// GetTransactionLineByID - Get a transactionLine by ID
-func GetTransactionLineByID(id uint) (*TransactionLine, error) {
+// UpdateTransactionLine - Update an existing transactionLine
+func UpdateTransactionLine(ctx context.Context, transactionLine TransactionLine) (*TransactionLine, error) {
+	return psql.Update[TransactionLine](ctx, transactionLine)
+}
+
+// DeleteTransactionLine - Delete a transactionLine
+func DeleteTransactionLine(ctx context.Context, id uint) error {
 	var transactionLine TransactionLine
-	err := DB.First(&transactionLine, id).Error
-	return &transactionLine, err
+	return psql.Delete[TransactionLine, uint](ctx, transactionLine, id)
+}
+
+func SeedTransactionLine(ctx context.Context) (*TransactionLine, error) {
+	account, err := SeedAccount(ctx)
+	if err != nil {
+		return nil, err
+	}
+	transaction, err := SeedTransaction(ctx)
+	if err != nil {
+		return nil, err
+	}
+	a := TransactionLine{
+		TransactionID: transaction.ID,
+		AccountID:     account.ID,
+		Debit:         100,
+		Credit:        0,
+	}
+	return CreateTransactionLine(ctx, a)
 }

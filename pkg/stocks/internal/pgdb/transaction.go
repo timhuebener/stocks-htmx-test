@@ -1,7 +1,9 @@
 package pgdb
 
 import (
+	"context"
 	"gorm.io/gorm"
+	"htmx/pkg/otel/db/psql"
 	"time"
 )
 
@@ -13,21 +15,37 @@ type Transaction struct {
 }
 
 // CreateTransaction - Create a new transaction
-func CreateTransaction(transaction *Transaction) (*Transaction, error) {
-	err := DB.Create(&transaction).Error
-	return transaction, err
+func CreateTransaction(ctx context.Context, transaction Transaction) (*Transaction, error) {
+	return psql.Create[Transaction](ctx, transaction)
+}
+
+// GetTransactionByID - Get an transaction by ID
+func GetTransactionByID(ctx context.Context, id uint) (*Transaction, error) {
+	var transaction Transaction
+	return psql.GetByID[Transaction, uint](ctx, transaction, id)
 }
 
 // GetTransactions - Get all transactions
-func GetTransactions() ([]Transaction, error) {
+func GetTransactions(ctx context.Context) ([]Transaction, error) {
 	var transactions []Transaction
-	res := DB.Find(&transactions)
-	return transactions, res.Error
+	return psql.Get[Transaction](ctx, transactions)
 }
 
-// GetTransactionByID - Get a transaction by ID
-func GetTransactionByID(id uint) (*Transaction, error) {
+// UpdateTransaction - Update an existing transaction
+func UpdateTransaction(ctx context.Context, transaction Transaction) (*Transaction, error) {
+	return psql.Update[Transaction](ctx, transaction)
+}
+
+// DeleteTransaction - Delete a transaction
+func DeleteTransaction(ctx context.Context, id uint) error {
 	var transaction Transaction
-	err := DB.First(&transaction, id).Error
-	return &transaction, err
+	return psql.Delete[Transaction, uint](ctx, transaction, id)
+}
+
+func SeedTransaction(ctx context.Context) (*Transaction, error) {
+	a := Transaction{
+		Description: "Test Transaction",
+		Date:        time.Now(),
+	}
+	return CreateTransaction(ctx, a)
 }

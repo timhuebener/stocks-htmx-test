@@ -1,6 +1,10 @@
 package pgdb
 
-import "gorm.io/gorm"
+import (
+	"context"
+	"gorm.io/gorm"
+	"htmx/pkg/otel/db/psql"
+)
 
 type Type string
 
@@ -10,38 +14,42 @@ const (
 
 type Account struct {
 	gorm.Model
-	Name    string
-	Type    string // assets, liabilities, equity, expenses, revenues
-	Balance float64
+	Name string
+	Type string // assets, liabilities, equity, expenses, revenues
 }
 
 // CreateAccount - Create a new account
-func CreateAccount(account *Account) (*Account, error) {
-	err := DB.Create(&account).Error
-	return account, err
+func CreateAccount(ctx context.Context, account Account) (*Account, error) {
+	return psql.Create[Account](ctx, account)
 }
 
-// GetAccountByID - Get a account by ID
-func GetAccountByID(id uint) (*Account, error) {
+// GetAccountByID - Get an account by ID
+func GetAccountByID(ctx context.Context, id uint) (*Account, error) {
 	var account Account
-	err := DB.First(&account, id).Error
-	return &account, err
+	return psql.GetByID[Account, uint](ctx, account, id)
 }
 
 // GetTransactions - Get all transactions
-func GetAccounts() ([]Account, error) {
-	var account []Account
-	res := DB.Find(&account)
-	return account, res.Error
+func GetAccounts(ctx context.Context) ([]Account, error) {
+	var accounts []Account
+	return psql.Get[Account](ctx, accounts)
 }
 
 // UpdateAccount - Update an existing account
-func UpdateAccount(account *Account) error {
-	return DB.Save(&account).Error
+func UpdateAccount(ctx context.Context, account Account) (*Account, error) {
+	return psql.Update[Account](ctx, account)
 }
 
 // DeleteAccount - Delete a account
-func DeleteAccount(id uint) error {
+func DeleteAccount(ctx context.Context, id uint) error {
 	var account Account
-	return DB.Delete(&account, id).Error
+	return psql.Delete[Account, uint](ctx, account, id)
+}
+
+func SeedAccount(ctx context.Context) (*Account, error) {
+	a := Account{
+		Name: "Test Account",
+		Type: string(Asset),
+	}
+	return CreateAccount(ctx, a)
 }

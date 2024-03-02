@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"htmx/pkg/app"
+	"htmx/pkg/db/psql"
 	loglib "htmx/pkg/log"
 	"htmx/pkg/otel"
 	ot "htmx/pkg/otel"
@@ -37,15 +38,15 @@ func (app *Stocks) Setup() (app.ShutdownFunc, error) {
 
 	log.Debug(app.Ctx, "Setting up application")
 	conn := fmt.Sprintf("host=localhost user=%s dbname=%s sslmode=disable password=%s", app.config.DbUser, app.config.DbName, app.config.DbPassword)
-	if err := pgdb.Connect(conn); err != nil {
+	if err := psql.Connect(conn); err != nil {
 		return nil, fmt.Errorf("Failed to connect to database:", err)
 	}
 
-	if err := pgdb.Migrate(); err != nil {
+	if err := psql.Migrate(&pgdb.Account{}, &pgdb.Transaction{}, &pgdb.TransactionLine{}); err != nil {
 		return nil, fmt.Errorf("Failed to migrate database:", err)
 	}
 
-	// pgdb.Seed()
+	// pgdb.SeedTransactionLine(app.Ctx)
 
 	// Set up OpenTelemetry.
 	log.Debug(app.Ctx, "Setting up OpenTelemetry")
